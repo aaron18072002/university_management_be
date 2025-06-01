@@ -2,9 +2,12 @@ package com.coding.university_management.University.Management.controller;
 
 import com.coding.university_management.University.Management.dto.request.UserCreationRequest;
 import com.coding.university_management.University.Management.dto.request.UserUpdateRequest;
+import com.coding.university_management.University.Management.dto.response.ApiResponse;
 import com.coding.university_management.University.Management.entity.User;
 import com.coding.university_management.University.Management.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,8 +24,14 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody UserCreationRequest request) {
-        return this.userService.createUser(request);
+    public ApiResponse<User> createUser(@RequestBody @Valid UserCreationRequest request) {
+        ApiResponse<User> apiResponse = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Tạo tài khoản thành công",
+                this.userService.createUser(request)
+        );
+
+        return apiResponse;
     }
 
     @GetMapping
@@ -31,12 +40,14 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public User getUser(@PathVariable String userId) {
+    public User getUser(@PathVariable(name = "userId") String userId) {
         return this.userService.getUser(userId);
     }
 
     @PutMapping("/{userId}")
-    public User updateUser(@PathVariable String userId, @RequestBody UserUpdateRequest request) {
+    public User updateUser
+            (@PathVariable(name = "userId") String userId,
+             @RequestBody UserUpdateRequest request) {
         return this.userService.updateUser(userId, request);
     }
 

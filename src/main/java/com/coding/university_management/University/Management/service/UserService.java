@@ -3,6 +3,8 @@ package com.coding.university_management.University.Management.service;
 import com.coding.university_management.University.Management.dto.request.UserCreationRequest;
 import com.coding.university_management.University.Management.dto.request.UserUpdateRequest;
 import com.coding.university_management.University.Management.entity.User;
+import com.coding.university_management.University.Management.exception.AppException;
+import com.coding.university_management.University.Management.exception.ErrorCode;
 import com.coding.university_management.University.Management.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,11 @@ public class UserService {
 
     public User createUser(UserCreationRequest request) {
         User user = new User();
+
+        if(this.userRepository.existsByUsername(request.getUsername())) {
+            throw new AppException(ErrorCode.USER_EXISTED);
+        }
+
         user.setUsername(request.getUsername());
         user.setPassword(request.getPassword());
         user.setFirstName(request.getFirstName());
@@ -36,7 +43,7 @@ public class UserService {
 
     public User getUser(String id) {
         return this.userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
     }
 
     public User updateUser(String userId, UserUpdateRequest request) {
