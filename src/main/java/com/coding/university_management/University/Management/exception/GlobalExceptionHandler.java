@@ -29,6 +29,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handlingNotFoundException(NotFoundException ex) {
+        ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.NOT_FOUND.value(), ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
+    }
+
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ApiResponse<Void>> handlingAppException(AppException ex) {
         ErrorCode errorCode = ex.getErrorCode();

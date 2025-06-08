@@ -2,37 +2,34 @@ package com.coding.university_management.University.Management.service;
 
 import com.coding.university_management.University.Management.dto.request.UserCreationRequest;
 import com.coding.university_management.University.Management.dto.request.UserUpdateRequest;
+import com.coding.university_management.University.Management.dto.response.UserResponse;
 import com.coding.university_management.University.Management.entity.User;
 import com.coding.university_management.University.Management.exception.AppException;
 import com.coding.university_management.University.Management.exception.ErrorCode;
+import com.coding.university_management.University.Management.exception.NotFoundException;
+import com.coding.university_management.University.Management.mapper.UserMapper;
 import com.coding.university_management.University.Management.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserService {
 
-    private final UserRepository userRepository;
-
-    @Autowired
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    UserRepository userRepository;
+    UserMapper userMapper;
 
     public User createUser(UserCreationRequest request) {
-        User user = new User();
-
         if(this.userRepository.existsByUsername(request.getUsername())) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
 
-        user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword());
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setDob(request.getDob());
+        User user = this.userMapper.toUSer(request);
 
         return this.userRepository.save(user);
     }
@@ -41,20 +38,17 @@ public class UserService {
         return this.userRepository.findAll();
     }
 
-    public User getUser(String id) {
-        return this.userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+    public UserResponse getUser(String id) {
+        return this.userMapper.toUserResponse(this.userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng")));
     }
 
-    public User updateUser(String userId, UserUpdateRequest request) {
-        User user = this.getUser(userId);
+    public UserResponse updateUser(String userId, UserUpdateRequest request) {
+        User user = this.userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));
+        this.userMapper.updateUser(user, request);
 
-        user.setPassword(request.getPassword());
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setDob(request.getDob());
-
-        return this.userRepository.save(user);
+        return this.userMapper.toUserResponse(this.userRepository.save(user));
 
     }
 
