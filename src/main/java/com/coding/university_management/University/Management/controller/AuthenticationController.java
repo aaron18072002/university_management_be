@@ -1,9 +1,12 @@
 package com.coding.university_management.University.Management.controller;
 
 import com.coding.university_management.University.Management.dto.request.AuthenticationRequest;
+import com.coding.university_management.University.Management.dto.request.IntrospectRequest;
 import com.coding.university_management.University.Management.dto.response.ApiResponse;
 import com.coding.university_management.University.Management.dto.response.AuthenticationResponse;
+import com.coding.university_management.University.Management.dto.response.IntrospectResponse;
 import com.coding.university_management.University.Management.service.AuthenticationService;
+import com.nimbusds.jose.JOSEException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -13,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.text.ParseException;
 
 @RestController
 @RequestMapping("/auth")
@@ -26,20 +31,25 @@ public class AuthenticationController {
     ResponseEntity<ApiResponse<AuthenticationResponse>> authenticate
             (@RequestBody AuthenticationRequest request)
     {
-        boolean isAuthenticated = authenticationService.authenticate(request);
-
-        HttpStatus status = isAuthenticated ? HttpStatus.OK : HttpStatus.UNAUTHORIZED;
-        String message = isAuthenticated ? "Đăng nhập thành công" : "Bạn đã nhập sai mật khẩu";
-
-        AuthenticationResponse authResponse = AuthenticationResponse.builder()
-                .authenticated(isAuthenticated)
-                .build();
-
+        AuthenticationResponse authenticationResponse =
+                this.authenticationService.authenticate(request);
         ApiResponse<AuthenticationResponse> response = new ApiResponse<>(
-                status.value(), message, authResponse
+                HttpStatus.OK.value(), "Đăng nhập thành công", authenticationResponse
         );
 
-        return ResponseEntity.status(status).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/introspect")
+    ResponseEntity<ApiResponse<IntrospectResponse>> authenticate
+            (@RequestBody IntrospectRequest request) throws ParseException, JOSEException {
+        IntrospectResponse authenticationResponse =
+                this.authenticationService.introspect(request);
+        ApiResponse<IntrospectResponse> response = new ApiResponse<>(
+                HttpStatus.OK.value(), "Kiểm tra token hợp lệ thành công", authenticationResponse
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 }

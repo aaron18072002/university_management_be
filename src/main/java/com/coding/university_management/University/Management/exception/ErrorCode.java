@@ -4,7 +4,8 @@ public enum ErrorCode {
     USER_EXISTED(409, "Tài khoản đã tồn tại"),
     USER_NOT_EXISTED(404, "Tài khoản không tồn tại"),
     UNCATEGORIZED_EXCEPTION(500, "Lỗi không xác định"),
-    VALIDATION_EXCEPTION(400, "Lỗi dữ liệu đầu vào")
+    VALIDATION_EXCEPTION(400, "Lỗi dữ liệu đầu vào"),
+    AUTHENTICATED(401, "Bạn đã nhập sai mật khẩu")
     ;
 
     private ErrorCode(int code, String message) {

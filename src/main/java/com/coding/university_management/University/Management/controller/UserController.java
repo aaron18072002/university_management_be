@@ -25,8 +25,8 @@ public class UserController {
     UserService userService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<User>> createUser(@RequestBody @Valid UserCreationRequest request) {
-        ApiResponse<User> apiResponse = new ApiResponse<>(
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(@RequestBody @Valid UserCreationRequest request) {
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>(
                 HttpStatus.CREATED.value(),
                 "Tạo tài khoản thành công",
                 this.userService.createUser(request)
@@ -36,8 +36,8 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<User>>> getUsers() {
-        ApiResponse<List<User>> apiResponse = new ApiResponse<>(
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getUsers() {
+        ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>(
                 HttpStatus.OK.value(),
                 "Danh sách các tài khoản",
                 this.userService.getUsers()
@@ -53,6 +53,17 @@ public class UserController {
                 HttpStatus.OK.value(),
                 "Thông tin của tài khoản",
                 this.userService.getUser(userId)
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @GetMapping("/myInfo")
+    public ResponseEntity<ApiResponse<UserResponse>> getMyInfo() {
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Thông tin tài khoản của tôi",
+                this.userService.getMyInfo()
         );
 
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
