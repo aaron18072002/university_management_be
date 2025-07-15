@@ -19,7 +19,7 @@ import java.util.Set;
 @Configuration
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class ApplicationConfig {
+public class ApplicationConfigInit {
 
     PasswordEncoder passwordEncoder;
 
@@ -33,7 +33,7 @@ public class ApplicationConfig {
                 User user = new User().builder()
                         .username("admin")
                         .password(this.passwordEncoder.encode("12345678"))
-                        .roles(roles)
+//                        .roles(roles)
                         .build();
 
                 userRepository.save(user);

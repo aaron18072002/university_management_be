@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,7 +42,16 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = ex.getErrorCode();
         ApiResponse<Void> apiResponse = new ApiResponse<>(errorCode.getCode(), errorCode.getMessage());
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(apiResponse);
+        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handlingAccessDeniedException(AccessDeniedException ex) {
+        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
+
+        return ResponseEntity
+                .status(errorCode.getStatusCode())
+                .body(new ApiResponse<>(errorCode.getCode(), errorCode.getMessage()));
     }
 
     @ExceptionHandler(RuntimeException.class)

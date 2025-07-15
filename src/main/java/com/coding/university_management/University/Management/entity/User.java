@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -36,7 +37,13 @@ public class User {
     @Column(name = "date_of_birth", columnDefinition = "DATE")
     LocalDate dob;
 
-    @Transient
-    Set<String> roles;
+    // Mối quan hệ một-nhiều tới bảng trung gian UserRole
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    private Set<UserRole> roles = new HashSet<>();
 
 }

@@ -11,5 +11,25 @@ CREATE TABLE USERS (
     date_of_birth DATE
 );
 
+CREATE TABLE USERS_ROLES (
+    user_id CHAR(36) NOT NULL,
+    role_name CHAR(36) NOT NULL
+);
+
+CREATE TABLE ROLES (
+	name CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    description VARCHAR(30)
+);
+
+CREATE TABLE PERMISSIONS (
+	name CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    description VARCHAR(30)
+);
+
+CREATE TABLE ROLES_PERMISSIONS (
+    role_name CHAR(36) NOT NULL,
+    permission_name CHAR(36) NOT NULL
+);
+
 SELECT * FROM USERS;
 DELETE FROM USERS; 

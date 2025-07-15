@@ -34,7 +34,7 @@ public class SecurityConfig {
                 request -> request.requestMatchers(HttpMethod.POST, this.PUBLIC_ENDPOINTS).permitAll()
                         // authorities chính là các scope hoặc roles được trích xuất
                         // từ JWT sau khi decode - tùy vào claims khi generateToken
-                        .requestMatchers(HttpMethod.GET, "/user")
+                        .requestMatchers(HttpMethod.GET, "/api/users")
                         .hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated());
 
@@ -44,7 +44,10 @@ public class SecurityConfig {
                         // Spring dùng jwtAuthenticationConverter() để:
                         // --> Trích xuất scope, roles từ token
                         // --> Gán thành GrantedAuthority
-                        .jwtAuthenticationConverter(this.jwtAuthenticationConverter())));
+                        .jwtAuthenticationConverter(this.jwtAuthenticationConverter()))
+                        // Xử lý lỗi khi xác thực thất bại (vd: không có token, token sai).
+                        // Trả về lỗi 401 Unauthorized dạng JSON thay vì trang đăng nhập mặc định.
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
 
         httpSecurity.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable());
 
