@@ -5,7 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Data
+@Getter // Dùng @Getter và @Setter thay cho @Data
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

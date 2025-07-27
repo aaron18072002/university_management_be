@@ -1,4 +1,4 @@
-CREATE DATABASE `university-management`;
+-- CREATE DATABASE `university-management`;
 
 USE `university-management`;
 
@@ -32,4 +32,6 @@ CREATE TABLE ROLES_PERMISSIONS (
 );
 
 SELECT * FROM USERS;
-DELETE FROM USERS; 
+SELECT * FROM ROLES;
+SELECT * FROM ROLES_PERMISSIONS;
+SELECT * FROM PERMISSIONS;

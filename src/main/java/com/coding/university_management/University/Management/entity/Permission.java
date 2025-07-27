@@ -7,7 +7,8 @@ import lombok.experimental.FieldDefaults;
 import java.util.HashSet;
 import java.util.Set;
 
-@Data
+@Getter // Dùng @Getter và @Setter thay cho @Data
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,7 +18,6 @@ import java.util.Set;
 public class Permission {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "name", columnDefinition = "CHAR(36)")
     String name;
 
@@ -25,6 +25,8 @@ public class Permission {
     String description;
 
     // Mối quan hệ một-nhiều với bảng trung gian RolePermission.
+    // Loại trừ trường này khỏi toString() để phá vỡ vòng lặp đệ quy
+    @ToString.Exclude
     @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<RolePermission> roles = new HashSet<>();
 

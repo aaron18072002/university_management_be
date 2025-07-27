@@ -8,7 +8,8 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-@Data
+@Getter // Dùng @Getter và @Setter thay cho @Data
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,6 +39,7 @@ public class User {
     LocalDate dob;
 
     // Mối quan hệ một-nhiều tới bảng trung gian UserRole
+    @ToString.Exclude
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.ALL,

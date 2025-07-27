@@ -9,7 +9,7 @@ public enum ErrorCode {
     USER_NOT_EXISTED(404, "Tài khoản không tồn tại", HttpStatus.NOT_FOUND),
     UNCATEGORIZED_EXCEPTION(500, "Lỗi không xác định", HttpStatus.INTERNAL_SERVER_ERROR),
     VALIDATION_EXCEPTION(400, "Lỗi dữ liệu đầu vào", HttpStatus.BAD_REQUEST),
-    UNAUTHENTICATED(401, "Bạn đã nhập sai mật khẩu", HttpStatus.UNAUTHORIZED),
+    UNAUTHENTICATED(401, "Lỗi xác thực thông tin truy cập", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(401, "Bạn không có quyền truy cập", HttpStatus.UNAUTHORIZED)
     ;
 

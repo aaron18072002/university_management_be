@@ -3,20 +3,17 @@ package com.coding.university_management.University.Management.dto.request;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserUpdateRequest {
+public class RoleRequest {
 
-    String password;
-    String firstName;
-    String lastName;
-    LocalDate dob;
-    List<String> roles;
+    String name;
+    String description;
+    Set<String> permissions;
 
 }
