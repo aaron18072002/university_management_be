@@ -38,14 +38,15 @@ public class User {
     @Column(name = "date_of_birth", columnDefinition = "DATE")
     LocalDate dob;
 
-    // Mối quan hệ một-nhiều tới bảng trung gian UserRole
-    @ToString.Exclude
-    @OneToMany(
-            mappedBy = "user",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY
+    // Cấu hình @ManyToMany để hoạt động với khóa ngoại dạng số
+    // ✨ CẬP NHẬT @JoinTable ĐỂ THAM CHIẾU ĐÚNG KHÓA CHÍNH CỦA ROLE ✨
+    @Builder.Default
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_name", referencedColumnName = "name") // Phải tham chiếu đến "name"
     )
-    private Set<UserRole> roles = new HashSet<>();
+    private Set<Role> roles = new HashSet<>();
 
 }

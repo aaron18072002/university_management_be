@@ -2,10 +2,6 @@ package com.coding.university_management.University.Management.service;
 
 import com.coding.university_management.University.Management.dto.request.RoleRequest;
 import com.coding.university_management.University.Management.dto.response.RoleResponse;
-import com.coding.university_management.University.Management.entity.Permission;
-import com.coding.university_management.University.Management.entity.Role;
-import com.coding.university_management.University.Management.entity.RolePermission;
-import com.coding.university_management.University.Management.entity.id.RolePermissionId;
 import com.coding.university_management.University.Management.mapper.RoleMapper;
 import com.coding.university_management.University.Management.repository.PermissionRepository;
 import com.coding.university_management.University.Management.repository.RoleRepository;
@@ -18,8 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,25 +27,12 @@ public class RoleService {
 
     @Transactional
     public RoleResponse create(RoleRequest request) {
-        Role role = this.roleMapper.toRole(request);
+        var role = roleMapper.toRole(request);
 
-        List<Permission> permissions = this.permissionRepository.findAllById(request.getPermissions());
-
-        Role finalRole = role;
-        List<RolePermission> rolePermissions = permissions.stream()
-                .map(permission -> {
-                    RolePermissionId id = new RolePermissionId(finalRole.getName(), permission.getName());
-                    RolePermission rolePermission = new RolePermission();
-                    rolePermission.setId(id);
-                    rolePermission.setRole(finalRole);
-                    rolePermission.setPermission(permission);
-                    return rolePermission;
-                }).toList();
-
-        role.setPermissions(new HashSet<>(rolePermissions));
+        var permissions = permissionRepository.findAllById(request.getPermissions());
+        role.setPermissions(new HashSet<>(permissions));
 
         role = roleRepository.save(role);
-
         return roleMapper.toRoleResponse(role);
     }
 

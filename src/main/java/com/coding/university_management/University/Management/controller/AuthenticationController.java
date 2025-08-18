@@ -2,6 +2,8 @@ package com.coding.university_management.University.Management.controller;
 
 import com.coding.university_management.University.Management.dto.request.AuthenticationRequest;
 import com.coding.university_management.University.Management.dto.request.IntrospectRequest;
+import com.coding.university_management.University.Management.dto.request.LogoutRequest;
+import com.coding.university_management.University.Management.dto.request.RefreshRequest;
 import com.coding.university_management.University.Management.dto.response.ApiResponse;
 import com.coding.university_management.University.Management.dto.response.AuthenticationResponse;
 import com.coding.university_management.University.Management.dto.response.IntrospectResponse;
@@ -47,6 +49,28 @@ public class AuthenticationController {
                 this.authenticationService.introspect(request);
         ApiResponse<IntrospectResponse> response = new ApiResponse<>(
                 HttpStatus.OK.value(), "Kiểm tra token hợp lệ thành công", authenticationResponse
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/refresh")
+    ResponseEntity<ApiResponse<AuthenticationResponse>> authenticate
+            (@RequestBody RefreshRequest request) throws ParseException, JOSEException {
+        AuthenticationResponse result = authenticationService.refreshToken(request);
+        ApiResponse<AuthenticationResponse> response = new ApiResponse<>(
+                HttpStatus.OK.value(), "Refresh token thành công", result
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/logout")
+    ResponseEntity<ApiResponse<Void>> logout
+            (@RequestBody LogoutRequest request) throws ParseException, JOSEException {
+        this.authenticationService.logout(request);
+        ApiResponse<Void> response = new ApiResponse<>(
+                HttpStatus.OK.value(), "Logout thành công"
         );
 
         return ResponseEntity.status(HttpStatus.OK).body(response);

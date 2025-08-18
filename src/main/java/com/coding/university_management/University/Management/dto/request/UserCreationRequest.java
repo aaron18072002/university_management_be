@@ -1,5 +1,6 @@
 package com.coding.university_management.University.Management.dto.request;
 
+import com.coding.university_management.University.Management.validator.DobConstraint;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -21,6 +22,8 @@ public class UserCreationRequest {
     private String password;
     private String firstName;
     private String lastName;
+
+    @DobConstraint(min = 18, message = "Bạn phải ít nhất từ 18 tuổi trở lên")
     private LocalDate dob;
 
     List<String> roles;

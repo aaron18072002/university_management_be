@@ -16,3 +16,6 @@ ALTER TABLE USERS_ROLES
 ADD CONSTRAINT pk_users_roles PRIMARY KEY (user_id, role_name),
 ADD CONSTRAINT fk_ur_users FOREIGN KEY (user_id) REFERENCES USERS(id) ON DELETE CASCADE,
 ADD CONSTRAINT fk_ur_roles FOREIGN KEY (role_name) REFERENCES ROLES(name) ON DELETE CASCADE;
+
+ALTER TABLE roles_permissions DROP FOREIGN KEY fk_permissions;
+ALTER TABLE roles_permissions DROP FOREIGN KEY fk_roles;

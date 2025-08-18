@@ -7,7 +7,7 @@ import lombok.experimental.FieldDefaults;
 import java.util.HashSet;
 import java.util.Set;
 
-@Getter // Dùng @Getter và @Setter thay cho @Data
+@Getter
 @Setter
 @Builder
 @NoArgsConstructor
@@ -24,23 +24,23 @@ public class Role {
     @Column(name = "description", columnDefinition = "VARCHAR(30)")
     String description;
 
-    // Mối quan hệ một-nhiều với bảng trung gian RolePermission.
-    // 'mappedBy = "role"' chỉ ra rằng mối quan hệ này được quản lý bởi trường 'role' trong Entity RolePermission.
-    // CascadeType.ALL: Khi một Role được lưu/xóa, các RolePermission liên quan cũng sẽ được lưu/xóa.
-    // orphanRemoval = true: Khi một RolePermission bị xóa khỏi tập hợp này, nó cũng sẽ bị xóa khỏi database.
-    // Loại trừ trường này khỏi toString() để phá vỡ vòng lặp đệ quy
+    /**
+     * Mối quan hệ nhiều-nhiều với Permission.
+     * Hibernate sẽ quản lý bảng trung gian 'ROLES_PERMISSIONS'.
+     * joinColumns: Cột trong bảng trung gian tham chiếu đến Entity này (Role).
+     * inverseJoinColumns: Cột trong bảng trung gian tham chiếu đến Entity kia (Permission).
+     */
     @ToString.Exclude
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<RolePermission> permissions = new HashSet<>();
-
-    // Mối quan hệ một-nhiều tới bảng trung gian UserRole
-    @ToString.Exclude
-    @OneToMany(
-            mappedBy = "role",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(
+            name = "ROLES_PERMISSIONS",
+            joinColumns = @JoinColumn(name = "role_name"),
+            inverseJoinColumns = @JoinColumn(name = "permission_name")
     )
-    private Set<UserRole> users = new HashSet<>();
+    private Set<Permission> permissions = new HashSet<>();
 
+    // Giữ nguyên mối quan hệ với User
+    @ToString.Exclude
+    @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
+    private Set<User> users = new HashSet<>();
 }

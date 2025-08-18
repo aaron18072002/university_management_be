@@ -5,8 +5,6 @@ import com.coding.university_management.University.Management.dto.request.UserUp
 import com.coding.university_management.University.Management.dto.response.UserResponse;
 import com.coding.university_management.University.Management.entity.Role;
 import com.coding.university_management.University.Management.entity.User;
-import com.coding.university_management.University.Management.entity.UserRole;
-import com.coding.university_management.University.Management.entity.id.UserRoleId;
 import com.coding.university_management.University.Management.exception.AppException;
 import com.coding.university_management.University.Management.exception.ErrorCode;
 import com.coding.university_management.University.Management.exception.NotFoundException;
@@ -46,14 +44,20 @@ public class UserService {
         User user = this.userMapper.toUser(request);
         user.setPassword(this.passwordEncoder.encode(request.getPassword()));
 
-        Set<String> roles = new HashSet<>();
-//        roles.add(Role.USER.name());
-//        user.setRoles(roles);
+        Set<Role> roles = new HashSet<>();
+        request.getRoles().forEach(role -> {
+            this.roleRepository.findById(role).ifPresent(roles::add);
+        });
+        user.setRoles(roles);
 
         return this.userMapper.toUserResponse(this.userRepository.save(user));
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    // Tự động thêm tiền tố ROLE_: Một điều quan trọng cần lưu ý
+    // là hàm hasRole('ADMIN') sẽ tự động tìm kiếm một quyền có tên là ROLE_ADMIN
+    // trong danh sách các quyền (authorities) của người dùng.
+    // Đây là một quy ước của Spring Security.
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getUsers() {
         return this.userRepository.findAll().stream()
                 .map(user -> this.userMapper.toUserResponse(user))
@@ -84,50 +88,24 @@ public class UserService {
     @Transactional
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
         User user = this.userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_EXISTED.getMessage()));
-        // Mapping biến request vào biến user
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
         this.userMapper.updateUser(user, request);
         user.setPassword(this.passwordEncoder.encode(request.getPassword()));
 
-        List<Role> roles = this.roleRepository.findAllById(request.getRoles());
-        // Tạo các đối tượng UserRole với khóa chính được khởi tạo đầy đủ
-        List<UserRole> userRoles = this.assignRolesToUser(user, roles);
-
-        // SỬA LỖI: Chỉnh sửa collection hiện có thay vì thay thế nó
-        // 1. Xóa tất cả các role cũ. Do có orphanRemoval=true, các bản ghi trong USERS_ROLES sẽ bị xóa.
-        user.getRoles().clear();
-        // 2. Thêm tất cả các role mới. Các bản ghi mới sẽ được tạo trong USERS_ROLES.
-        user.getRoles().addAll(userRoles);
+        // Cập nhật vai trò một cách đơn giản
+        // Giả sử request.getRoles() trả về List<Long> của các role ID
+        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+            List<Role> roles = this.roleRepository.findAllById(request.getRoles());
+            user.setRoles(new HashSet<>(roles));
+        }
 
         return this.userMapper.toUserResponse(this.userRepository.save(user));
-
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(String userId) {
         this.userRepository.deleteById(userId);
-    }
-
-    /**
-     * Hàm private helper để tạo và gán các đối tượng UserRole cho một User.
-     * Hàm này chịu trách nhiệm khởi tạo khóa chính phức hợp UserRoleId.
-     *
-     * @param user  Đối tượng User cần được gán role.
-     * @param roles Danh sách các đối tượng Role sẽ được gán.
-     * @return Một Set các đối tượng UserRole đã sẵn sàng để được lưu.
-     */
-    private List<UserRole> assignRolesToUser(User user, List<Role> roles) {
-        return roles.stream()
-                .map(role -> {
-                    // Khởi tạo khóa chính phức hợp một cách tường minh
-                    UserRoleId userRoleId = new UserRoleId(user.getId(), role.getName());
-                    UserRole userRole = new UserRole();
-                    userRole.setId(userRoleId);
-                    userRole.setUser(user);
-                    userRole.setRole(role);
-
-                    return userRole;
-                })
-                .toList(); // Thu thập trực tiếp vào Set cho hiệu quả
     }
 
 }

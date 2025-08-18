@@ -5,7 +5,6 @@ import com.coding.university_management.University.Management.dto.request.UserUp
 import com.coding.university_management.University.Management.dto.response.RoleResponse;
 import com.coding.university_management.University.Management.dto.response.UserResponse;
 import com.coding.university_management.University.Management.entity.User;
-import com.coding.university_management.University.Management.entity.UserRole;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -36,8 +35,8 @@ public interface UserMapper {
      * Dạy cho MapStruct cách chuyển đổi một đối tượng UserRole (bảng trung gian)
      * thành một RoleResponse (DTO) hoàn chỉnh.
      */
-    @Mapping(target = "name", source = "role.name")
-    @Mapping(target = "description", source = "role.description")
-    @Mapping(target = "permissions", source = "role.permissions") // <-- Dòng quan trọng nhất
-    RoleResponse userRoleToRoleResponse(UserRole userRole);
+//    @Mapping(target = "name", source = "role.name")
+//    @Mapping(target = "description", source = "role.description")
+//    @Mapping(target = "permissions", source = "role.permissions") // <-- Dòng quan trọng nhất
+//    RoleResponse userRoleToRoleResponse(UserRole userRole);
 }

@@ -7,7 +7,7 @@ import lombok.experimental.FieldDefaults;
 import java.util.HashSet;
 import java.util.Set;
 
-@Getter // Dùng @Getter và @Setter thay cho @Data
+@Getter
 @Setter
 @Builder
 @NoArgsConstructor
@@ -24,10 +24,13 @@ public class Permission {
     @Column(name = "description", columnDefinition = "VARCHAR(30)")
     String description;
 
-    // Mối quan hệ một-nhiều với bảng trung gian RolePermission.
-    // Loại trừ trường này khỏi toString() để phá vỡ vòng lặp đệ quy
+    /**
+     * Mối quan hệ nhiều-nhiều với Role.
+     * 'mappedBy = "permissions"' chỉ ra rằng mối quan hệ này được quản lý
+     * bởi trường 'permissions' trong Entity 'Role'.
+     * Điều này giúp tránh việc tạo ra các cấu hình trùng lặp.
+     */
     @ToString.Exclude
-    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<RolePermission> roles = new HashSet<>();
-
+    @ManyToMany(mappedBy = "permissions", fetch = FetchType.LAZY)
+    private Set<Role> roles = new HashSet<>();
 }
