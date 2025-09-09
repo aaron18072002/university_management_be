@@ -30,6 +30,11 @@ public class SecurityConfig {
                         // từ JWT sau khi decode - tùy vào claims khi generateToken
                         .requestMatchers(HttpMethod.GET, "/api/users")
                         .hasAuthority("ROLE_ADMIN")
+                        // Chỉ cho phép người dùng có quyền ROLE_ADMIN gọi các API thay đổi NganhHoc
+                        .requestMatchers(HttpMethod.POST, "/api/nganh-hoc")
+                        .hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/nganh-hoc")
+                        .hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated());
 
         // config mọi request tới phải mang Bearer token hợp lệ ở Headers.Authorization
