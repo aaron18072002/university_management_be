@@ -23,7 +23,8 @@ public class NganhHocController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<NganhHocResponse> createNganhHoc(@RequestBody @Valid NganhHocRequest request) {
+    public ApiResponse<NganhHocResponse> createNganhHoc
+            (@RequestBody @Valid NganhHocRequest request) {
         return new ApiResponse<>(HttpStatus.CREATED.value(),
                 "Tạo ngành học thành công",
                 nganhHocService.createNganhHoc(request));

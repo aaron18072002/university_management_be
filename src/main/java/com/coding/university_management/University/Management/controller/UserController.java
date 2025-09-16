@@ -4,7 +4,6 @@ import com.coding.university_management.University.Management.dto.request.UserCr
 import com.coding.university_management.University.Management.dto.request.UserUpdateRequest;
 import com.coding.university_management.University.Management.dto.response.ApiResponse;
 import com.coding.university_management.University.Management.dto.response.UserResponse;
-import com.coding.university_management.University.Management.entity.User;
 import com.coding.university_management.University.Management.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;

@@ -62,4 +62,8 @@ public class MonHoc {
 
     @OneToMany(mappedBy = "monHoc", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<HocLai> hocLais = new HashSet<>();
+
+    // Liên kết nhiều-nhiều với NganhHoc thông qua bảng trung gian NGANH_MONHOC
+    @ManyToMany(mappedBy = "monHocs", fetch = FetchType.LAZY)
+    Set<NganhHoc> nganhHocs = new HashSet<>();
 }

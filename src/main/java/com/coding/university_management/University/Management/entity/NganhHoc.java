@@ -30,4 +30,13 @@ public class NganhHoc {
 
     @OneToMany(mappedBy = "nganhHoc") // Xóa cascade = CascadeType.PERSIST
     Set<SinhVien> sinhViens = new HashSet<>();
+
+    // Liên kết nhiều-nhiều với MonHoc thông qua bảng trung gian NGANH_MONHOC
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "NGANH_MONHOC",
+            joinColumns = @JoinColumn(name = "ma_nganh_hoc"),
+            inverseJoinColumns = @JoinColumn(name = "ma_mon_hoc")
+    )
+    Set<MonHoc> monHocs = new HashSet<>();
 }

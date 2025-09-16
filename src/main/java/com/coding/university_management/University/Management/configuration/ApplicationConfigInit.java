@@ -1,11 +1,8 @@
 package com.coding.university_management.University.Management.configuration;
 
-import com.coding.university_management.University.Management.entity.Permission;
-import com.coding.university_management.University.Management.entity.Role;
-import com.coding.university_management.University.Management.entity.User;
-import com.coding.university_management.University.Management.repository.PermissionRepository;
-import com.coding.university_management.University.Management.repository.RoleRepository;
-import com.coding.university_management.University.Management.repository.UserRepository;
+import com.coding.university_management.University.Management.entity.*;
+import com.coding.university_management.University.Management.enums.TenTinChi;
+import com.coding.university_management.University.Management.repository.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -16,9 +13,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,7 +31,13 @@ public class ApplicationConfigInit {
     static final String ADMIN_PASSWORD = "12345678";
 
     @Bean
-    public ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository, PermissionRepository permissionRepository) {
+    public ApplicationRunner applicationRunner(UserRepository userRepository,
+                                               RoleRepository roleRepository,
+                                               PermissionRepository permissionRepository,
+                                               LoaiTinChiRepository loaiTinChiRepository,
+                                               NganhHocRepository nganhHocRepository,
+                                               MonHocRepository monHocRepository,
+                                               TinChiRepository tinChiRepository) {
         log.info("Initializing application.....");
         return args -> {
             if (userRepository.findByUsername(ADMIN_USER_NAME).isEmpty()) {
@@ -100,7 +102,128 @@ public class ApplicationConfigInit {
 
                 userRepository.save(user);
                 log.warn("admin user has been created with default password: {}, please change it", ADMIN_PASSWORD);
+
+                // Tạo data cho TINCHI, LOAITINCHI, MONHOC, NGANHHOC
+                // Create LoaiTinChi (Credit Types) if they don't exist
+                String lyThuyetId = "LT-" + UUID.randomUUID().toString().substring(0, 8);
+                String thucHanhId = "TH-" + UUID.randomUUID().toString().substring(0, 8);
+
+                if (loaiTinChiRepository.count() == 0) {
+                    log.info("Creating credit types...");
+                    LoaiTinChi lyThuyet = LoaiTinChi.builder()
+                            .maLoaiTinChi(lyThuyetId)
+                            .tenLoaiTinChi("Lý thuyết")
+                            .build();
+
+                    LoaiTinChi thucHanh = LoaiTinChi.builder()
+                            .maLoaiTinChi(thucHanhId)
+                            .tenLoaiTinChi("Thực hành")
+                            .build();
+
+                    loaiTinChiRepository.saveAll(List.of(lyThuyet, thucHanh));
+                } else {
+                    // Get IDs of existing types if they exist
+                    lyThuyetId = loaiTinChiRepository.findByTenLoaiTinChi("Lý thuyết")
+                            .map(LoaiTinChi::getMaLoaiTinChi)
+                            .orElse(lyThuyetId);
+
+                    thucHanhId = loaiTinChiRepository.findByTenLoaiTinChi("Thực hành")
+                            .map(LoaiTinChi::getMaLoaiTinChi)
+                            .orElse(thucHanhId);
+                }
+
+                // Create NganhHoc (Major) if it doesn't exist
+                final String maNganh = "CNPM-" + UUID.randomUUID().toString().substring(0, 8);
+                if (!nganhHocRepository.existsByTenNganhHoc("Công nghệ phần mềm")) {
+                    log.info("Creating Software Engineering major...");
+                    NganhHoc cnpm = NganhHoc.builder()
+                            .maNganhHoc(maNganh)
+                            .tenNganhHoc("Công nghệ phần mềm")
+                            .moTa("Ngành học về kỹ thuật phát triển phần mềm")
+                            .build();
+                    nganhHocRepository.save(cnpm);
+                }
+
+                // Get the NganhHoc for linking
+                NganhHoc cnpm = nganhHocRepository.findByTenNganhHoc("Công nghệ phần mềm")
+                        .orElseThrow(() -> new RuntimeException("Major not found"));
+
+                // Create 3 MonHoc (Courses) if they don't exist
+                if (!monHocRepository.existsByTenMonHoc("Lập trình Java")) {
+                    log.info("Creating courses for Software Engineering...");
+                    // Course 1: Java Programming
+                    MonHoc javaMonHoc = MonHoc.builder()
+                            .maMonHoc("JAVA-" + UUID.randomUUID().toString().substring(0, 8))
+                            .tenMonHoc("Lập trình Java")
+                            .moTa("Môn học về ngôn ngữ lập trình Java")
+                            .tongSoTinChi(4)
+                            .build();
+
+                    // Initialize nganhHocs if null
+                    if (javaMonHoc.getNganhHocs() == null) {
+                        javaMonHoc.setNganhHocs(new HashSet<>());
+                    }
+
+                    // Add to major
+                    javaMonHoc.getNganhHocs().add(cnpm);
+                    monHocRepository.save(javaMonHoc);
+
+                    // Course 2: Database Systems
+                    MonHoc dbMonHoc = MonHoc.builder()
+                            .maMonHoc("DB-" + UUID.randomUUID().toString().substring(0, 8))
+                            .tenMonHoc("Hệ quản trị cơ sở dữ liệu")
+                            .moTa("Môn học về thiết kế và quản lý cơ sở dữ liệu")
+                            .tongSoTinChi(4)
+                            .build();
+
+                    // Initialize nganhHocs if null
+                    if (dbMonHoc.getNganhHocs() == null) {
+                        dbMonHoc.setNganhHocs(new HashSet<>());
+                    }
+
+                    // Add to major
+                    dbMonHoc.getNganhHocs().add(cnpm);
+                    monHocRepository.save(dbMonHoc);
+
+                    // Course 3: Web Programming
+                    MonHoc webMonHoc = MonHoc.builder()
+                            .maMonHoc("WEB-" + UUID.randomUUID().toString().substring(0, 8))
+                            .tenMonHoc("Lập trình Web")
+                            .moTa("Môn học về phát triển ứng dụng web")
+                            .tongSoTinChi(3)
+                            .build();
+
+                    // Initialize nganhHocs if null
+                    if (webMonHoc.getNganhHocs() == null) {
+                        webMonHoc.setNganhHocs(new HashSet<>());
+                    }
+
+                    // Add to major
+                    webMonHoc.getNganhHocs().add(cnpm);
+                    monHocRepository.save(webMonHoc);
+
+                    // Create TinChi for Web course
+                    TinChi webLT = TinChi.builder()
+                            .soTinChi(2)
+                            .tenTinChi(TenTinChi.LY_THUYET)
+                            .giaTriTinChi(new BigDecimal("450000"))
+                            .loaiTinChi(loaiTinChiRepository.findById(lyThuyetId).orElse(null))
+                            .monHoc(webMonHoc)
+                            .build();
+
+                    TinChi webTH = TinChi.builder()
+                            .soTinChi(1)
+                            .tenTinChi(TenTinChi.THUC_HANH)
+                            .giaTriTinChi(new BigDecimal("500000"))
+                            .loaiTinChi(loaiTinChiRepository.findById(thucHanhId).orElse(null))
+                            .monHoc(webMonHoc)
+                            .build();
+
+                    tinChiRepository.saveAll(List.of(webLT, webTH));
+                }
             }
+
+
             log.info("Application initialization completed .....");
         };
     }
