@@ -16,7 +16,7 @@ public class MonHocResponse {
     private String id;
     private String tenMonHoc;
     private String moTa;
-    private Integer tongSoTinChi;
+//    private Integer tongSoTinChi;
     private String maMonHocTienQuyet;
     private Set<String> maNganhHocs;
     private List<TinChiResponse> tinChis;

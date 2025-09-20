@@ -22,7 +22,7 @@ public class MonHocCreateRequest {
 
     private String moTa;
 
-    private Integer tongSoTinChi;
+//    private Integer tongSoTinChi;
 
     // Optional prerequisite course
     private String maMonHocTienQuyet;

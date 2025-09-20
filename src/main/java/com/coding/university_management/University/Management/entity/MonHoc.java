@@ -28,8 +28,8 @@ public class MonHoc {
     @Column(name = "mo_ta", columnDefinition = "VARCHAR(255)")
     String moTa;
 
-    @Column(name = "tong_so_tin_chi", columnDefinition = "INT")
-    Integer tongSoTinChi;
+//    @Column(name = "tong_so_tin_chi", columnDefinition = "INT")
+//    Integer tongSoTinChi;
 
     /**
      * Môn học tiên quyết cần hoàn thành trước khi học môn này.

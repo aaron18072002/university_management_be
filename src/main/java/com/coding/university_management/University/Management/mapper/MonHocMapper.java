@@ -26,7 +26,7 @@ public interface MonHocMapper {
                 .id(monHoc.getMaMonHoc())
                 .tenMonHoc(monHoc.getTenMonHoc())
                 .moTa(monHoc.getMoTa())
-                .tongSoTinChi(monHoc.getTongSoTinChi())
+//                .tongSoTinChi(monHoc.getTongSoTinChi())
                 .maMonHocTienQuyet(monHoc.getMonHocTienQuyet() != null ? monHoc.getMonHocTienQuyet().getMaMonHoc() : null)
                 .maNganhHocs(monHoc.getNganhHocs().stream()
                         .map(m -> m.getMaNganhHoc())
