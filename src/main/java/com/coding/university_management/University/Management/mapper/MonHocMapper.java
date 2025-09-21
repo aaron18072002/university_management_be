@@ -2,46 +2,65 @@ package com.coding.university_management.University.Management.mapper;
 
 import com.coding.university_management.University.Management.dto.request.MonHocCreateRequest;
 import com.coding.university_management.University.Management.dto.response.MonHocResponse;
+import com.coding.university_management.University.Management.dto.response.NganhHocResponse;
 import com.coding.university_management.University.Management.dto.response.TinChiResponse;
 import com.coding.university_management.University.Management.entity.MonHoc;
+import com.coding.university_management.University.Management.entity.NganhHoc;
 import com.coding.university_management.University.Management.entity.TinChi;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
-public interface MonHocMapper {
+@Component
+public class MonHocMapper {
 
-    @Mapping(target = "monHocTienQuyet", ignore = true)
-    @Mapping(target = "monHocPhuThuoc", ignore = true)
-    @Mapping(target = "tinChis", ignore = true)
-    @Mapping(target = "ketQuaHocTaps", ignore = true)
-    @Mapping(target = "hocLais", ignore = true)
-    @Mapping(target = "nganhHocs", ignore = true)
-    MonHoc toEntity(MonHocCreateRequest req);
+    public MonHoc toEntity(MonHocCreateRequest req) {
+        if (req == null) return null;
 
-    default MonHocResponse toResponse(MonHoc monHoc) {
+        return MonHoc.builder()
+                .maMonHoc(req.getMaMonHoc())
+                .tenMonHoc(req.getTenMonHoc())
+                .moTa(req.getMoTa())
+                .build();
+    }
+
+    public MonHocResponse toResponse(MonHoc monHoc) {
+        if (monHoc == null) return null;
+
         return MonHocResponse.builder()
                 .id(monHoc.getMaMonHoc())
                 .tenMonHoc(monHoc.getTenMonHoc())
                 .moTa(monHoc.getMoTa())
-//                .tongSoTinChi(monHoc.getTongSoTinChi())
-                .maMonHocTienQuyet(monHoc.getMonHocTienQuyet() != null ? monHoc.getMonHocTienQuyet().getMaMonHoc() : null)
-                .maNganhHocs(monHoc.getNganhHocs().stream()
-                        .map(m -> m.getMaNganhHoc())
+                .maMonHocTienQuyet(monHoc.getMonHocTienQuyet() != null ?
+                        monHoc.getMonHocTienQuyet().getMaMonHoc() : null)
+                .nganhHocs(monHoc.getNganhHocs().stream()
+                        .map(this::toNganhHocResponse)
                         .collect(Collectors.toSet()))
-                .tinChis(monHoc.getTinChis().stream().map(this::toTinChiResponse).toList())
+                .tinChis(monHoc.getTinChis().stream()
+                        .map(this::toTinChiResponse)
+                        .collect(Collectors.toList()))
                 .build();
     }
 
-    default TinChiResponse toTinChiResponse(TinChi tc) {
+    public NganhHocResponse toNganhHocResponse(NganhHoc nganhHoc) {
+        if (nganhHoc == null) return null;
+
+        return NganhHocResponse.builder()
+                .maNganhHoc(nganhHoc.getMaNganhHoc())
+                .tenNganhHoc(nganhHoc.getTenNganhHoc())
+                .moTa(nganhHoc.getMoTa())
+                .build();
+    }
+
+    public TinChiResponse toTinChiResponse(TinChi tc) {
+        if (tc == null) return null;
+
         return TinChiResponse.builder()
                 .soTinChi(tc.getSoTinChi())
                 .giaTriTinChi(tc.getGiaTriTinChi())
                 .tenTinChi(tc.getTenTinChi().name())
-                .maLoaiTinChi(tc.getLoaiTinChi() != null ? tc.getLoaiTinChi().getMaLoaiTinChi() : null)
+                .maLoaiTinChi(tc.getLoaiTinChi() != null ?
+                        tc.getLoaiTinChi().getMaLoaiTinChi() : null)
                 .build();
     }
-
 }

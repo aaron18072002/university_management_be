@@ -33,41 +33,45 @@ public class MonHocService {
 
     @Transactional
     public MonHocResponse createMonHoc(MonHocCreateRequest request) {
-
+        // Generate ID if not provided
         if (request.getMaMonHoc() == null || request.getMaMonHoc().isBlank()) {
             request.setMaMonHoc(UUID.randomUUID().toString());
         }
+
+        // Check if ID already exists
         if (monHocRepository.existsById(request.getMaMonHoc())) {
             throw new IllegalArgumentException("maMonHoc already exists");
         }
 
+        // Use mapper to create entity (now with concrete implementation)
         MonHoc monHoc = monHocMapper.toEntity(request);
         monHoc.setMaMonHoc(request.getMaMonHoc());
 
-        // Prerequisite
-        if (request.getMaMonHocTienQuyet() != null) {
+        // Set prerequisite if specified
+        if (request.getMaMonHocTienQuyet() != null && !request.getMaMonHocTienQuyet().isBlank()) {
             MonHoc pre = monHocRepository.findById(request.getMaMonHocTienQuyet())
                     .orElseThrow(() -> new IllegalArgumentException("Prerequisite not found"));
             monHoc.setMonHocTienQuyet(pre);
         }
 
-        // Persist base MonHoc first
+        // Save entity first to get ID
         monHoc = monHocRepository.save(monHoc);
 
-        // Link majors
+        // Link with majors
         if (request.getMaNganhHocs() != null && !request.getMaNganhHocs().isEmpty()) {
             List<NganhHoc> majors = nganhHocRepository.findAllById(request.getMaNganhHocs());
             if (majors.size() != request.getMaNganhHocs().size()) {
                 throw new IllegalArgumentException("Some maNganhHoc not found");
             }
+
             for (NganhHoc nh : majors) {
                 nh.getMonHocs().add(monHoc);
                 monHoc.getNganhHocs().add(nh);
             }
-            nganhHocRepository.saveAll(majors); // owning side
+            nganhHocRepository.saveAll(majors); // Save the owning side
         }
 
-        // Inline TinChi creation
+        // Create and link TinChi entries
         if (request.getTinChis() != null && !request.getTinChis().isEmpty()) {
             List<TinChi> toSave = new ArrayList<>();
             for (TinChiCreateRequest tReq : request.getTinChis()) {
@@ -87,6 +91,10 @@ public class MonHocService {
             monHoc.getTinChis().addAll(toSave);
         }
 
-        return monHocMapper.toResponse(monHoc);
+        // Refresh entity to ensure all relationships are loaded
+        MonHoc finalMonHoc = monHocRepository.findById(monHoc.getMaMonHoc()).orElse(monHoc);
+
+        // Use the new mapper implementation to create response with full NganhHocResponse objects
+        return monHocMapper.toResponse(finalMonHoc);
     }
 }

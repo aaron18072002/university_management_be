@@ -16,9 +16,8 @@ public class MonHocResponse {
     private String id;
     private String tenMonHoc;
     private String moTa;
-//    private Integer tongSoTinChi;
     private String maMonHocTienQuyet;
-    private Set<String> maNganhHocs;
+    // Replace Set<String> with Set<NganhHocResponse>
+    private Set<NganhHocResponse> nganhHocs;
     private List<TinChiResponse> tinChis;
-
 }
