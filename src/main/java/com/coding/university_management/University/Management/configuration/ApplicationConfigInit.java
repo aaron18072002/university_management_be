@@ -12,6 +12,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 public class ApplicationConfigInit {
 
     PasswordEncoder passwordEncoder;
+    TransactionTemplate transactionTemplate; // added
 
     @NonFinal
     static final String ADMIN_USER_NAME = "admin";
@@ -38,10 +40,9 @@ public class ApplicationConfigInit {
                                                NganhHocRepository nganhHocRepository,
                                                MonHocRepository monHocRepository,
                                                TinChiRepository tinChiRepository) {
-        log.info("Initializing application.....");
+
         return args -> {
             if (userRepository.findByUsername(ADMIN_USER_NAME).isEmpty()) {
-                // 1. Define all permissions
                 Map<String, String> permissions = Map.ofEntries(
                         Map.entry("student:read", "Xem thông tin sinh viên"),
                         Map.entry("student:create", "Tạo sinh viên"),
@@ -63,165 +64,152 @@ public class ApplicationConfigInit {
                         Map.entry("credit:register", "Quyền đăng ký tín chỉ"),
                         Map.entry("credit:cancel", "Quyền hủy tín chỉ")
                 );
-
-                permissions.forEach((name, description) -> {
-                    if (permissionRepository.findById(name).isEmpty()) {
-                        permissionRepository.save(Permission.builder().name(name).description(description).build());
+                permissions.forEach((n, d) -> {
+                    if (permissionRepository.findById(n).isEmpty()) {
+                        permissionRepository.save(Permission.builder().name(n).description(d).build());
                     }
                 });
 
-                // 2. Define roles and assign permissions
-                // SINHVIEN Role
                 Set<Permission> studentPermissions = Set.of("student:read", "course:read", "schedule:read", "grade:read", "tuition:read", "credit:register", "credit:cancel")
-                        .stream().map(permissionRepository::findById).map(p -> p.orElse(null)).collect(Collectors.toSet());
+                        .stream().map(permissionRepository::findById).map(o -> o.orElse(null)).collect(Collectors.toSet());
                 roleRepository.save(Role.builder().name("SINHVIEN").description("Vai trò sinh viên").permissions(studentPermissions).build());
 
-                // GIAOVIEN Role
                 Set<Permission> teacherPermissions = Set.of("student:read", "course:read", "schedule:read", "grade:read", "grade:update")
-                        .stream().map(permissionRepository::findById).map(p -> p.orElse(null)).collect(Collectors.toSet());
+                        .stream().map(permissionRepository::findById).map(o -> o.orElse(null)).collect(Collectors.toSet());
                 roleRepository.save(Role.builder().name("GIAOVIEN").description("Vai trò giáo viên").permissions(teacherPermissions).build());
 
-                // KETOAN Role
                 Set<Permission> accountantPermissions = Set.of("student:read", "tuition:read", "tuition:create", "tuition:update")
-                        .stream().map(permissionRepository::findById).map(p -> p.orElse(null)).collect(Collectors.toSet());
+                        .stream().map(permissionRepository::findById).map(o -> o.orElse(null)).collect(Collectors.toSet());
                 roleRepository.save(Role.builder().name("KETOAN").description("Vai trò kế toán").permissions(accountantPermissions).build());
 
-                // QUANTRIVIEN Role (Admin) - has all permissions
                 Set<Permission> adminPermissions = new HashSet<>(permissionRepository.findAll());
                 Role adminRole = roleRepository.save(Role.builder().name("QUANTRIVIEN").description("Vai trò quản trị viên").permissions(adminPermissions).build());
-
-                // 3. Create admin user
-                Set<Role> roles = new HashSet<>();
-                roles.add(adminRole);
 
                 User user = User.builder()
                         .username(ADMIN_USER_NAME)
                         .password(passwordEncoder.encode(ADMIN_PASSWORD))
-                        .roles(roles)
+                        .roles(Set.of(adminRole))
                         .build();
-
                 userRepository.save(user);
-                log.warn("admin user has been created with default password: {}, please change it", ADMIN_PASSWORD);
 
-                // Tạo data cho TINCHI, LOAITINCHI, MONHOC, NGANHHOC
-                // Create LoaiTinChi (Credit Types) if they don't exist
                 String lyThuyetId = "LT-" + UUID.randomUUID().toString().substring(0, 8);
                 String thucHanhId = "TH-" + UUID.randomUUID().toString().substring(0, 8);
-
                 if (loaiTinChiRepository.count() == 0) {
-                    log.info("Creating credit types...");
-                    LoaiTinChi lyThuyet = LoaiTinChi.builder()
-                            .maLoaiTinChi(lyThuyetId)
-                            .tenLoaiTinChi("Lý thuyết")
-                            .build();
-
-                    LoaiTinChi thucHanh = LoaiTinChi.builder()
-                            .maLoaiTinChi(thucHanhId)
-                            .tenLoaiTinChi("Thực hành")
-                            .build();
-
-                    loaiTinChiRepository.saveAll(List.of(lyThuyet, thucHanh));
-                } else {
-                    // Get IDs of existing types if they exist
-                    lyThuyetId = loaiTinChiRepository.findByTenLoaiTinChi("Lý thuyết")
-                            .map(LoaiTinChi::getMaLoaiTinChi)
-                            .orElse(lyThuyetId);
-
-                    thucHanhId = loaiTinChiRepository.findByTenLoaiTinChi("Thực hành")
-                            .map(LoaiTinChi::getMaLoaiTinChi)
-                            .orElse(thucHanhId);
+                    LoaiTinChi lt = LoaiTinChi.builder().maLoaiTinChi(lyThuyetId).tenLoaiTinChi("Lý thuyết").build();
+                    LoaiTinChi th = LoaiTinChi.builder().maLoaiTinChi(thucHanhId).tenLoaiTinChi("Thực hành").build();
+                    loaiTinChiRepository.saveAll(List.of(lt, th));
                 }
 
-                // Create NganhHoc (Major) if it doesn't exist
-                final String maNganh = "CNPM-" + UUID.randomUUID().toString().substring(0, 8);
                 if (!nganhHocRepository.existsByTenNganhHoc("Công nghệ phần mềm")) {
-                    log.info("Creating Software Engineering major...");
                     NganhHoc cnpm = NganhHoc.builder()
-                            .maNganhHoc(maNganh)
                             .tenNganhHoc("Công nghệ phần mềm")
                             .moTa("Ngành học về kỹ thuật phát triển phần mềm")
                             .build();
                     nganhHocRepository.save(cnpm);
                 }
 
-                // Get the NganhHoc for linking
-                NganhHoc cnpm = nganhHocRepository.findByTenNganhHoc("Công nghệ phần mềm")
-                        .orElseThrow(() -> new RuntimeException("Major not found"));
-
-                // Create 3 MonHoc (Courses) if they don't exist
                 if (!monHocRepository.existsByTenMonHoc("Lập trình Java")) {
-                    log.info("Creating courses for Software Engineering...");
-                    // Course 1: Java Programming
-                    MonHoc javaMonHoc = MonHoc.builder()
+                    MonHoc java = MonHoc.builder()
                             .maMonHoc("JAVA-" + UUID.randomUUID().toString().substring(0, 8))
                             .tenMonHoc("Lập trình Java")
                             .moTa("Môn học về ngôn ngữ lập trình Java")
                             .build();
+                    monHocRepository.save(java);
 
-                    // Initialize nganhHocs if null
-                    if (javaMonHoc.getNganhHocs() == null) {
-                        javaMonHoc.setNganhHocs(new HashSet<>());
-                    }
-
-                    // Add to major
-                    javaMonHoc.getNganhHocs().add(cnpm);
-                    monHocRepository.save(javaMonHoc);
-
-                    // Course 2: Database Systems
-                    MonHoc dbMonHoc = MonHoc.builder()
+                    MonHoc db = MonHoc.builder()
                             .maMonHoc("DB-" + UUID.randomUUID().toString().substring(0, 8))
                             .tenMonHoc("Hệ quản trị cơ sở dữ liệu")
                             .moTa("Môn học về thiết kế và quản lý cơ sở dữ liệu")
                             .build();
+                    monHocRepository.save(db);
 
-                    // Initialize nganhHocs if null
-                    if (dbMonHoc.getNganhHocs() == null) {
-                        dbMonHoc.setNganhHocs(new HashSet<>());
-                    }
-
-                    // Add to major
-                    dbMonHoc.getNganhHocs().add(cnpm);
-                    monHocRepository.save(dbMonHoc);
-
-                    // Course 3: Web Programming
-                    MonHoc webMonHoc = MonHoc.builder()
+                    MonHoc web = MonHoc.builder()
                             .maMonHoc("WEB-" + UUID.randomUUID().toString().substring(0, 8))
                             .tenMonHoc("Lập trình Web")
                             .moTa("Môn học về phát triển ứng dụng web")
                             .build();
-
-                    // Initialize nganhHocs if null
-                    if (webMonHoc.getNganhHocs() == null) {
-                        webMonHoc.setNganhHocs(new HashSet<>());
-                    }
-
-                    // Add to major
-                    webMonHoc.getNganhHocs().add(cnpm);
-                    monHocRepository.save(webMonHoc);
-
-                    // Create TinChi for Web course
-//                    TinChi webLT = TinChi.builder()
-//                            .soTinChi(2)
-//                            .tenTinChi(TenTinChi.LY_THUYET)
-//                            .giaTriTinChi(new BigDecimal("450000"))
-//                            .loaiTinChi(loaiTinChiRepository.findById(lyThuyetId).orElse(null))
-//                            .monHoc(webMonHoc)
-//                            .build();
-//
-//                    TinChi webTH = TinChi.builder()
-//                            .soTinChi(1)
-//                            .tenTinChi(TenTinChi.THUC_HANH)
-//                            .giaTriTinChi(new BigDecimal("500000"))
-//                            .loaiTinChi(loaiTinChiRepository.findById(thucHanhId).orElse(null))
-//                            .monHoc(webMonHoc)
-//                            .build();
-//
-//                    tinChiRepository.saveAll(List.of(webLT, webTH));
+                    monHocRepository.save(web);
                 }
             }
 
+            // Always ensure majors + 10 courses + mapping (inside one transaction)
+            transactionTemplate.execute(status -> {
+                initMajorsAndCoursesWithMapping(nganhHocRepository, monHocRepository);
+                return null;
+            });
 
-            log.info("Application initialization completed .....");
+            log.info("Initialization finished.");
         };
+    }
+
+    // Creates (if absent) 2 majors + 10 fixed courses and maps them (owning side: NganhHoc.monHocs).
+    private void initMajorsAndCoursesWithMapping(NganhHocRepository nganhHocRepository,
+                                                 MonHocRepository monHocRepository) {
+
+        NganhHoc cnpm = nganhHocRepository.findByTenNganhHoc("Công nghệ phần mềm")
+                .orElseGet(() -> nganhHocRepository.save(
+                        NganhHoc.builder()
+                                .tenNganhHoc("Công nghệ phần mềm")
+                                .moTa("Ngành học về phát triển phần mềm")
+                                .build()
+                ));
+
+        NganhHoc ketoan = nganhHocRepository.findByTenNganhHoc("Kế toán")
+                .orElseGet(() -> nganhHocRepository.save(
+                        NganhHoc.builder()
+                                .tenNganhHoc("Kế toán")
+                                .moTa("Ngành học về kế toán và tài chính")
+                                .build()
+                ));
+
+        record Def(String code, String name, String desc, String belong) {}
+        List<Def> defs = List.of(
+                new Def("JV101","Lập trình Java","Ngôn ngữ lập trình Java cơ bản","CNPM"),
+                new Def("DSA102","Cấu trúc dữ liệu","Cấu trúc và giải thuật","CNPM"),
+                new Def("DB103","Cơ sở dữ liệu","Mô hình dữ liệu & SQL","CNPM"),
+                new Def("WEB104","Phát triển Web","Xây dựng ứng dụng Web","CNPM"),
+                new Def("TEST105","Kiểm thử phần mềm","Kỹ thuật kiểm thử","CNPM"),
+                new Def("ACC201","Kế toán cơ bản","Nguyên lý kế toán","KETOAN"),
+                new Def("ACC202","Kế toán tài chính","Báo cáo & chuẩn mực","KETOAN"),
+                new Def("TAX203","Thuế doanh nghiệp","Quản lý và kê khai thuế","KETOAN"),
+                new Def("STAT301","Thống kê ứng dụng","Phân tích thống kê","BOTH"),
+                new Def("PM302","Quản trị dự án","Quản lý vòng đời dự án","BOTH")
+        );
+
+        Map<String, MonHoc> cache = new HashMap<>();
+        for (Def d : defs) {
+            MonHoc mon = monHocRepository.findById(d.code()).orElseGet(() -> {
+                MonHoc m = MonHoc.builder()
+                        .maMonHoc(d.code())
+                        .tenMonHoc(d.name())
+                        .moTa(d.desc())
+                        .build();
+                return monHocRepository.save(m);
+            });
+            cache.put(d.code(), mon);
+        }
+
+        if (cnpm.getMonHocs() == null) cnpm.setMonHocs(new HashSet<>());
+        if (ketoan.getMonHocs() == null) ketoan.setMonHocs(new HashSet<>());
+
+        // Optional idempotent clean: remove only those 10 codes before re-adding
+        cnpm.getMonHocs().removeIf(m -> cache.containsKey(m.getMaMonHoc()));
+        ketoan.getMonHocs().removeIf(m -> cache.containsKey(m.getMaMonHoc()));
+
+        for (Def d : defs) {
+            MonHoc mon = cache.get(d.code());
+            switch (d.belong()) {
+                case "CNPM" -> cnpm.getMonHocs().add(mon);
+                case "KETOAN" -> ketoan.getMonHocs().add(mon);
+                case "BOTH" -> {
+                    cnpm.getMonHocs().add(mon);
+                    ketoan.getMonHocs().add(mon);
+                }
+            }
+        }
+
+        nganhHocRepository.saveAll(List.of(cnpm, ketoan)); // owning side persisted
+        log.info("Majors mapped: CNPM={} courses, KETOAN={} courses.",
+                cnpm.getMonHocs().size(), ketoan.getMonHocs().size());
     }
 }

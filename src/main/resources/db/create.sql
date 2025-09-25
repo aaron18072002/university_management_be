@@ -1,4 +1,4 @@
--- CREATE DATABASE `university-management`;
+CREATE DATABASE `university-management`;
 
 USE `university-management`;
 
