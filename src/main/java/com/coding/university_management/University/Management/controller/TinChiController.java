@@ -24,4 +24,10 @@ public class TinChiController {
                 tinChiService.create(request));
     }
 
+    @GetMapping
+    public ApiResponse<java.util.List<TinChiResponse>> getAll() {
+        return new ApiResponse<>(HttpStatus.OK.value(), "Lấy danh sách tín chỉ thành công",
+                tinChiService.getAll());
+    }
+
 }

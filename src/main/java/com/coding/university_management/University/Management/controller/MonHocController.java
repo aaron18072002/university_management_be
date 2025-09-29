@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/mon-hoc")
@@ -23,4 +25,12 @@ public class MonHocController {
                 "Tạo môn học thành công",
                 monHocService.createMonHoc(request));
     }
+
+    @GetMapping
+    public ApiResponse<List<MonHocResponse>> getAll() {
+        return new ApiResponse<>(HttpStatus.OK.value(),
+                "Lấy danh sách môn học thành công",
+                monHocService.getAllMonHoc());
+    }
+
 }

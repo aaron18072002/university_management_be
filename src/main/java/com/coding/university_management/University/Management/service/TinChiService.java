@@ -1,25 +1,36 @@
 package com.coding.university_management.University.Management.service;
 
 import com.coding.university_management.University.Management.dto.request.TinChiCreateRequest;
+import com.coding.university_management.University.Management.dto.response.MonHocResponse;
+import com.coding.university_management.University.Management.dto.response.NganhHocResponse;
 import com.coding.university_management.University.Management.dto.response.TinChiResponse;
 import com.coding.university_management.University.Management.entity.LoaiTinChi;
 import com.coding.university_management.University.Management.entity.MonHoc;
 import com.coding.university_management.University.Management.entity.TinChi;
 import com.coding.university_management.University.Management.enums.TenTinChi;
+import com.coding.university_management.University.Management.mapper.TinChiMapper;
 import com.coding.university_management.University.Management.repository.LoaiTinChiRepository;
 import com.coding.university_management.University.Management.repository.MonHocRepository;
 import com.coding.university_management.University.Management.repository.TinChiRepository;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TinChiService {
 
-    private final TinChiRepository tinChiRepository;
-    private final LoaiTinChiRepository loaiTinChiRepository;
-    private final MonHocRepository monHocRepository;
+    TinChiRepository tinChiRepository;
+    LoaiTinChiRepository loaiTinChiRepository;
+    MonHocRepository monHocRepository;
+    TinChiMapper tinChiMapper;
 
     @Transactional
     public TinChiResponse create(TinChiCreateRequest req) {
@@ -28,6 +39,15 @@ public class TinChiService {
 
         MonHoc monHoc = monHocRepository.findById(req.getMaMonHoc())
                 .orElseThrow(() -> new IllegalArgumentException("MonHoc not found"));
+
+        // Initialize collections if null
+        if (loai.getTinChis() == null) {
+            loai.setTinChis(new HashSet<>());
+        }
+
+        if (monHoc.getTinChis() == null) {
+            monHoc.setTinChis(new HashSet<>());
+        }
 
         TinChi tinChi = TinChi.builder()
                 .soTinChi(req.getSoTinChi())
@@ -39,18 +59,23 @@ public class TinChiService {
 
         tinChi = tinChiRepository.save(tinChi);
 
-        // maintain owning-side collections (optional for persistence, good for consistency)
+        // maintain owning-side collections
         loai.getTinChis().add(tinChi);
         monHoc.getTinChis().add(tinChi);
 
-        return TinChiResponse.builder()
-                .maTinChi(tinChi.getMaTinChi())
-                .soTinChi(tinChi.getSoTinChi())
-                .giaTriTinChi(tinChi.getGiaTriTinChi())
-                .tenTinChi(tinChi.getTenTinChi().name())
-                .maLoaiTinChi(loai.getMaLoaiTinChi())
-                .maMonHoc(monHoc.getMaMonHoc())
-                .build();
+        // Save the updated entities
+        loaiTinChiRepository.save(loai);
+        monHocRepository.save(monHoc);
+
+        // Use the mapper to create response with proper NganhHoc mapping
+        return tinChiMapper.toResponse(tinChi);
     }
 
+    public List<TinChiResponse> getAll() {
+        List<TinChi> tinChis = tinChiRepository.findAll();
+        return tinChis.stream()
+                .map(tinChiMapper::toResponse)
+                .collect(Collectors.toList());
+    }
 }
+

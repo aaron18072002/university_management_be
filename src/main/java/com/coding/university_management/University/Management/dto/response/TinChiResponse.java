@@ -17,6 +17,7 @@ public class TinChiResponse {
     private BigDecimal giaTriTinChi;
     private String tenTinChi;
     private String maLoaiTinChi;
-    private String maMonHoc;
+    // Replace maMonHoc with monHoc object
+    MonHocResponse monHoc;
 
 }

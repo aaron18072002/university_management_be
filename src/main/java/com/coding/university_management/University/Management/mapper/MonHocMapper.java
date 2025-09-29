@@ -3,10 +3,8 @@ package com.coding.university_management.University.Management.mapper;
 import com.coding.university_management.University.Management.dto.request.MonHocCreateRequest;
 import com.coding.university_management.University.Management.dto.response.MonHocResponse;
 import com.coding.university_management.University.Management.dto.response.NganhHocResponse;
-import com.coding.university_management.University.Management.dto.response.TinChiResponse;
 import com.coding.university_management.University.Management.entity.MonHoc;
 import com.coding.university_management.University.Management.entity.NganhHoc;
-import com.coding.university_management.University.Management.entity.TinChi;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
@@ -36,9 +34,6 @@ public class MonHocMapper {
                 .nganhHocs(monHoc.getNganhHocs().stream()
                         .map(this::toNganhHocResponse)
                         .collect(Collectors.toSet()))
-                .tinChis(monHoc.getTinChis().stream()
-                        .map(this::toTinChiResponse)
-                        .collect(Collectors.toList()))
                 .build();
     }
 
@@ -52,15 +47,4 @@ public class MonHocMapper {
                 .build();
     }
 
-    public TinChiResponse toTinChiResponse(TinChi tc) {
-        if (tc == null) return null;
-
-        return TinChiResponse.builder()
-                .soTinChi(tc.getSoTinChi())
-                .giaTriTinChi(tc.getGiaTriTinChi())
-                .tenTinChi(tc.getTenTinChi().name())
-                .maLoaiTinChi(tc.getLoaiTinChi() != null ?
-                        tc.getLoaiTinChi().getMaLoaiTinChi() : null)
-                .build();
-    }
 }

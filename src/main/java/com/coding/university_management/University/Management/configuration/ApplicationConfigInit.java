@@ -1,7 +1,6 @@
 package com.coding.university_management.University.Management.configuration;
 
 import com.coding.university_management.University.Management.entity.*;
-import com.coding.university_management.University.Management.enums.TenTinChi;
 import com.coding.university_management.University.Management.repository.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,6 +30,7 @@ public class ApplicationConfigInit {
     static final String ADMIN_USER_NAME = "admin";
     @NonFinal
     static final String ADMIN_PASSWORD = "12345678";
+    private final GioHocRepository gioHocRepository;
 
     @Bean
     public ApplicationRunner applicationRunner(UserRepository userRepository,
@@ -39,7 +39,7 @@ public class ApplicationConfigInit {
                                                LoaiTinChiRepository loaiTinChiRepository,
                                                NganhHocRepository nganhHocRepository,
                                                MonHocRepository monHocRepository,
-                                               TinChiRepository tinChiRepository) {
+                                               GioHocRepository gioHocRepository) {
 
         return args -> {
             if (userRepository.findByUsername(ADMIN_USER_NAME).isEmpty()) {
@@ -211,5 +211,61 @@ public class ApplicationConfigInit {
         nganhHocRepository.saveAll(List.of(cnpm, ketoan)); // owning side persisted
         log.info("Majors mapped: CNPM={} courses, KETOAN={} courses.",
                 cnpm.getMonHocs().size(), ketoan.getMonHocs().size());
+
+        initTimeSlots(gioHocRepository);
+    }
+
+    // Add this method to initialize time slots
+    private void initTimeSlots(GioHocRepository gioHocRepository) {
+        if (gioHocRepository.count() == 0) {
+            List<GioHoc> timeSlots = List.of(
+                    GioHoc.builder()
+                            .maGioHoc("GH001")
+                            .tenGioHoc("Ca 1 (7:30 - 9:00)")
+                            .thoiGianBatDau(LocalTime.of(7, 30))
+                            .thoiGianKetThuc(LocalTime.of(9, 0))
+                            .build(),
+                    GioHoc.builder()
+                            .maGioHoc("GH002")
+                            .tenGioHoc("Ca 2 (9:15 - 10:45)")
+                            .thoiGianBatDau(LocalTime.of(9, 15))
+                            .thoiGianKetThuc(LocalTime.of(10, 45))
+                            .build(),
+                    GioHoc.builder()
+                            .maGioHoc("GH003")
+                            .tenGioHoc("Ca 3 (11:00 - 12:30)")
+                            .thoiGianBatDau(LocalTime.of(11, 0))
+                            .thoiGianKetThuc(LocalTime.of(12, 30))
+                            .build(),
+                    GioHoc.builder()
+                            .maGioHoc("GH004")
+                            .tenGioHoc("Ca 4 (13:30 - 15:00)")
+                            .thoiGianBatDau(LocalTime.of(13, 30))
+                            .thoiGianKetThuc(LocalTime.of(15, 0))
+                            .build(),
+                    GioHoc.builder()
+                            .maGioHoc("GH005")
+                            .tenGioHoc("Ca 5 (15:15 - 16:45)")
+                            .thoiGianBatDau(LocalTime.of(15, 15))
+                            .thoiGianKetThuc(LocalTime.of(16, 45))
+                            .build(),
+                    GioHoc.builder()
+                            .maGioHoc("GH006")
+                            .tenGioHoc("Ca 6 (18:00 - 19:30)")
+                            .thoiGianBatDau(LocalTime.of(18, 0))
+                            .thoiGianKetThuc(LocalTime.of(19, 30))
+                            .build(),
+                    GioHoc.builder()
+                            .maGioHoc("GH007")
+                            .tenGioHoc("Ca 7 (19:45 - 21:15)")
+                            .thoiGianBatDau(LocalTime.of(19, 45))
+                            .thoiGianKetThuc(LocalTime.of(21, 15))
+                            .build()
+            );
+
+            gioHocRepository.saveAll(timeSlots);
+            log.info("Initialized {} time slots", timeSlots.size());
+        }
     }
 }
+

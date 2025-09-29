@@ -30,7 +30,4 @@ public class MonHocCreateRequest {
     // Majors to link (can be empty)
     private Set<String> maNganhHocs;
 
-    // Optional inline TinChi creation
-    private List<TinChiCreateRequest> tinChis;
-
 }

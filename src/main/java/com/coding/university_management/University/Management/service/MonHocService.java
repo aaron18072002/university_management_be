@@ -18,8 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,9 +45,18 @@ public class MonHocService {
             throw new IllegalArgumentException("maMonHoc already exists");
         }
 
-        // Use mapper to create entity (now with concrete implementation)
+        // Use mapper to create entity
         MonHoc monHoc = monHocMapper.toEntity(request);
         monHoc.setMaMonHoc(request.getMaMonHoc());
+
+        // Initialize collections
+        if (monHoc.getNganhHocs() == null) {
+            monHoc.setNganhHocs(new HashSet<>());
+        }
+
+        if (monHoc.getTinChis() == null) {
+            monHoc.setTinChis(new HashSet<>());
+        }
 
         // Set prerequisite if specified
         if (request.getMaMonHocTienQuyet() != null && !request.getMaMonHocTienQuyet().isBlank()) {
@@ -65,36 +76,31 @@ public class MonHocService {
             }
 
             for (NganhHoc nh : majors) {
+                // Initialize the collection if null
+                if (nh.getMonHocs() == null) {
+                    nh.setMonHocs(new HashSet<>());
+                }
+                // Update both sides of the relationship
                 nh.getMonHocs().add(monHoc);
                 monHoc.getNganhHocs().add(nh);
             }
-            nganhHocRepository.saveAll(majors); // Save the owning side
-        }
-
-        // Create and link TinChi entries
-        if (request.getTinChis() != null && !request.getTinChis().isEmpty()) {
-            List<TinChi> toSave = new ArrayList<>();
-            for (TinChiCreateRequest tReq : request.getTinChis()) {
-                TinChi tc = TinChi.builder()
-                        .soTinChi(tReq.getSoTinChi())
-                        .giaTriTinChi(tReq.getGiaTriTinChi())
-                        .tenTinChi(TenTinChi.valueOf(tReq.getTenTinChi()))
-                        .monHoc(monHoc)
-                        .build();
-
-                LoaiTinChi loai = loaiTinChiRepository.findById(tReq.getMaLoaiTinChi())
-                        .orElseThrow(() -> new IllegalArgumentException("LoaiTinChi not found: " + tReq.getMaLoaiTinChi()));
-                tc.setLoaiTinChi(loai);
-                toSave.add(tc);
-            }
-            tinChiRepository.saveAll(toSave);
-            monHoc.getTinChis().addAll(toSave);
+            // Save both sides
+            nganhHocRepository.saveAll(majors);
+            monHocRepository.save(monHoc);
         }
 
         // Refresh entity to ensure all relationships are loaded
         MonHoc finalMonHoc = monHocRepository.findById(monHoc.getMaMonHoc()).orElse(monHoc);
 
-        // Use the new mapper implementation to create response with full NganhHocResponse objects
+        // Use the mapper implementation to create response
         return monHocMapper.toResponse(finalMonHoc);
     }
+
+    public List<MonHocResponse> getAllMonHoc() {
+        List<MonHoc> monHocs = monHocRepository.findAll();
+        return monHocs.stream()
+                .map(monHocMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
 }

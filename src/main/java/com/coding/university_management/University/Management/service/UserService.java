@@ -96,7 +96,8 @@ public class UserService {
         // Cập nhật vai trò một cách đơn giản
         // Giả sử request.getRoles() trả về List<Long> của các role ID
         if (request.getRoles() != null && !request.getRoles().isEmpty()) {
-            List<Role> roles = this.roleRepository.findAllById(request.getRoles());
+            List<Role> roles = this.roleRepository.findAllById
+                    (request.getRoles());
             user.setRoles(new HashSet<>(roles));
         }
 
