@@ -12,6 +12,7 @@ public class SinhVienCreateRequest {
     private String email;
     private String soDienThoai;
     private LocalDate ngayNhapHoc;
+    private LocalDate ngayTotNghiep; // <-- Add this field
     private String maNganhHoc;
 
     // ChiTietSinhVien fields

@@ -2,7 +2,6 @@ package com.coding.university_management.University.Management.mapper;
 
 import com.coding.university_management.University.Management.dto.request.SinhVienCreateRequest;
 import com.coding.university_management.University.Management.dto.response.SinhVienResponse;
-import com.coding.university_management.University.Management.entity.ChiTietSinhVien;
 import com.coding.university_management.University.Management.entity.SinhVien;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,13 +21,7 @@ public class SinhVienMapper {
                 .email(request.getEmail())
                 .soDienThoai(request.getSoDienThoai())
                 .ngayNhapHoc(request.getNgayNhapHoc())
-                .build();
-    }
-
-    public ChiTietSinhVien toChiTietEntity(SinhVienCreateRequest request) {
-        if (request == null) return null;
-
-        return ChiTietSinhVien.builder()
+                .ngayTotNghiep(request.getNgayTotNghiep())
                 .diaChi(request.getDiaChi())
                 .ngaySinh(request.getNgaySinh())
                 .gioiTinh(request.getGioiTinh())
@@ -41,8 +34,6 @@ public class SinhVienMapper {
     public SinhVienResponse toResponse(SinhVien sinhVien) {
         if (sinhVien == null) return null;
 
-        ChiTietSinhVien chiTiet = sinhVien.getChiTietSinhVien();
-
         return SinhVienResponse.builder()
                 .maSinhVien(sinhVien.getMaSinhVien())
                 .hoTen(sinhVien.getHoTen())
@@ -51,12 +42,12 @@ public class SinhVienMapper {
                 .ngayNhapHoc(sinhVien.getNgayNhapHoc())
                 .ngayTotNghiep(sinhVien.getNgayTotNghiep())
                 .nganhHoc(nganhHocMapper.toNganhHocResponse(sinhVien.getNganhHoc()))
-                .diaChi(chiTiet != null ? chiTiet.getDiaChi() : null)
-                .ngaySinh(chiTiet != null ? chiTiet.getNgaySinh() : null)
-                .gioiTinh(chiTiet != null && chiTiet.getGioiTinh() != null ? chiTiet.getGioiTinh().name() : null)
-                .quocTich(chiTiet != null ? chiTiet.getQuocTich() : null)
-                .cccd(chiTiet != null ? chiTiet.getCccd() : null)
-                .sdtNguoiThan(chiTiet != null ? chiTiet.getSdtNguoiThan() : null)
+                .diaChi(sinhVien.getDiaChi())
+                .ngaySinh(sinhVien.getNgaySinh())
+                .gioiTinh(sinhVien.getGioiTinh() != null ? sinhVien.getGioiTinh().name() : null)
+                .quocTich(sinhVien.getQuocTich())
+                .cccd(sinhVien.getCccd())
+                .sdtNguoiThan(sinhVien.getSdtNguoiThan())
                 .user(sinhVien.getUser() != null ? userMapper.toUserResponse(sinhVien.getUser()) : null)
                 .build();
     }
