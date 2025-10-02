@@ -16,7 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final String[] PUBLIC_ENDPOINTS = {
-            "/auth/log-in", "/auth/introspect", "/users",
+            "/auth/log-in", "/auth/introspect", "/api/users",
             "/auth/logout", "/auth/refresh"
     };
 
@@ -25,16 +25,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(
-                request -> request.requestMatchers(HttpMethod.POST, this.PUBLIC_ENDPOINTS).permitAll()
-                        // authorities chính là các scope hoặc roles được trích xuất
-                        // từ JWT sau khi decode - tùy vào claims khi generateToken
-                        .requestMatchers(HttpMethod.GET, "/api/users")
-                        .hasAuthority("ROLE_ADMIN")
-                        // Chỉ cho phép người dùng có quyền ROLE_ADMIN gọi các API thay đổi NganhHoc
-                        .requestMatchers(HttpMethod.POST, "/api/nganh-hoc")
-                        .hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/nganh-hoc")
-                        .hasAuthority("ROLE_ADMIN")
+                request -> request.requestMatchers(HttpMethod.POST, this.PUBLIC_ENDPOINTS)
+                        .permitAll()
                         .anyRequest().authenticated());
 
         // config mọi request tới phải mang Bearer token hợp lệ ở Headers.Authorization
